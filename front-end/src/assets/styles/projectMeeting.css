@@ -1,14 +1,14 @@
 .project-meeting-container {
   width: 100%;
-  height: 998px;
+  height: 100%;
   background-color: #ffff;
 }
 
 .project-meeting-main {
-  margin: 0px 30px;
-  height: 95%;
+  height: 100%;
   display: flex;
   position: relative;
+  padding: 20px 50px 200px 50px;
 }
 
 .project-meeting-footer {
@@ -97,13 +97,6 @@
   justify-content: center;
 }
 
-.project-meeting-video-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-}
-
 .project-meeting-person-vide-box {
   width: 300px;
   height: 250px;
@@ -149,40 +142,37 @@
   position: absolute;
   border: 1px solid black;
   border-radius: 25px;
-  height: 825px;
-  width: 1700px;
-  margin-left: 300px;
+  height: 780px;
+  width: 1200px;
+  top: 20px;
+  left: 470px;
 }
 
-.project-meeting-video-sare-painht {
+.project-meeting-video-share-paint {
   position: absolute;
-  border: 1px solid black;
   border-radius: 25px;
-  height: 825px;
-  width: 1700px;
-  margin-left: 300px;
+  height: 780px;
+  width: 1200px;
+  top: 20px;
+  left: 470px;
 }
 
 .project-meeting-video-share-palette {
   display: flex;
   align-items: center;
-  border: 1px solid black;
-  border-radius: 25px;
-  width: 120px;
-  height: 500px;
-  background-color: #dddbec;
   justify-content: center;
-  margin: 0px 50px;
+  height: 500px;
+}
+
+.project-meeting-video-share-palette2 {
+  border-radius: 25px;
+  background-color: #dddbec;
+  padding: 60px 0px;
 }
 
 .project-meeting-btn-code-edit,
 .project-meeting-btn-share {
   font-size: 14px;
-}
-
-.project-meeting-video-share-section {
-  display: flex;
-  align-items: center;
 }
 
 .project-meeting-video-share-eraser {
@@ -198,19 +188,59 @@
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   padding: 10px;
   border-radius: 25px;
+  margin: 0px 10px;
 }
 
 .project-meeting-person-name {
-  position: relative;
-  background-color: #fff;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 44px;
-  top: -60px;
-  left: 270px;
-  border: 1px solid;
   width: 200px;
   height: 50px;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  background-color: #fff;
+  border-radius: 15px;
+  font-size: 33px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.CodeMirror-sizer {
+  margin-left: 30px !important;
+}
+
+.CodeMirror-gutters {
+  width: 29px !important;
+  border-right: 1px solid #ddd !important;
+  background-color: #f7f7f7 !important;
+}
+
+.project-meeting-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cm-s-monokai.CodeMirror {
+  width: 100%;
+  height: 100%;
+}
+
+.cm-s-default.CodeMirror {
+  width: 100%;
+  height: 100%;
+}
+
+.project-meeting-code-edit-select-box {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0px;
+}
+
+.project-meeting-code-edit-box {
+  width: 100%;
+  height: 100%;
+  border: 1px solid;
 }

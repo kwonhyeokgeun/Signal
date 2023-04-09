@@ -3,7 +3,10 @@ import 'assets/styles/beforemeeting.css'
 import MeetingMemoModal from 'components/Memo/MeetingMemoModal'
 import io from 'socket.io-client'
 import noProfileImg from 'assets/image/noProfileImg.png'
+import MeetingPresentTime from 'components/Meeting/MeetingPresentTime'
+import MeetingQna from 'components/Meeting/MeetingQna'
 
+// ============================================
 let myStream
 
 let myName
@@ -20,11 +23,12 @@ let selfStream
 
 let numOfUsers
 let socket
+let isOwner
+
+let postingSeq
 
 const prevMeetingSetting = () => {
   socket = io('https://meeting.ssafysignal.site', { secure: true, cors: { origin: '*' } })
-  // socket = io('https://localhost:443', { secure: true, cors: { origin: '*' } })
-  console.log('사전 미팅 소켓 통신 시작!')
 
   pcConfig = {
     iceServers: [
@@ -38,29 +42,28 @@ const prevMeetingSetting = () => {
       },
     ],
   }
-  roomId = '123'
-  myName = sessionStorage.getItem('username')
 
-  if (myName === null) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let result = ''
-    const charactersLength = characters.length
-    for (let i = 0; i < 6; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength))
+  const params = new URLSearchParams(location.search)
+  roomId = 'prev' + params.get('applySeq')
+  myName = sessionStorage.getItem('nickname')
+  isOwner = params.get('owner')
+
+  postingSeq = params.get('postingSeq')
+
+  if (myName !== params.get('nickname')) {
+    if (!alert('권한이 없습니다. 다시 로그인하세요')) {
+      window.close()
     }
-    myName = '익명' + result
   }
 
-  userNames = {} // userNames[socketId]="이름"
-  socketIds = {} // socketIds["이름"]=socketId
+  userNames = {}
+  socketIds = {}
 
   sendPC = {
-    // sendPC[purpose]=pc
-    user: {}, // 유저 얼굴
-    share: {}, // 화면공유
+    user: {},
+    share: {},
   }
   receivePCs = {
-    // receivePCs[purpose][socketId]=pc
     user: {},
     share: {},
   }
@@ -80,7 +83,14 @@ function Beforemeeting() {
     // 기존 방의 유저수와 방장이름 얻어옴
     socket.on('room_info', (data) => {
       numOfUsers = data.numOfUsers + 1
-      console.log(numOfUsers, '명이 이미 접속해있음')
+
+      if (data.isDup === true) {
+        if (!alert('중복접속입니다.!!')) {
+          window.close()
+        }
+        return
+      }
+
       if (numOfUsers > 2) {
         if (!alert('정원 초과입니다.')) {
           // window.location = '..'
@@ -98,14 +108,12 @@ function Beforemeeting() {
 
     // 처음 방에 접속했을 때, 이미 방안에 들어와있던 user들의 정보를 받음
     socket.on('all_users', (data) => {
-      console.log('all_users : ', data.users)
       allUsersHandler(data) // 미리 접속한 유저들의 영상을 받기위한 pc, offer 생성
     })
 
     // 클라이언트 입장에서 보내는 역할의 peerConnection 객체에서 수신한 answer 메시지(sender_offer의 응답받음)
     socket.on('get_sender_answer', (data) => {
       try {
-        console.log('get_sender_answer 받음')
         sendPC[data.purpose].setRemoteDescription(new RTCSessionDescription(data.answer))
       } catch (error) {
         console.error(error)
@@ -153,9 +161,8 @@ function Beforemeeting() {
     })
   }
 
-  const now = ''
-  const today = ''
-  console.log('랜더링')
+  // const now = ''
+  // const today = ''
 
   // const [now, setNow] = useState('00:00:00')
   // const dateNow = new Date()
@@ -178,7 +185,6 @@ function Beforemeeting() {
   // startTimer()
 
   function meetingStart() {
-    console.log('meetingStart 실행')
     navigator.mediaDevices
       .getUserMedia({
         audio: true,
@@ -217,6 +223,7 @@ function Beforemeeting() {
         console.error(error)
         if (!alert('카메라(또는 마이크)가 없거나 권한이 없습니다')) {
           // window.location = '..'
+          window.close()
         }
       })
   }
@@ -225,9 +232,7 @@ function Beforemeeting() {
   function createSenderPeerConnection(stream, purpose, isAudioTrue = 1) {
     const pc = new RTCPeerConnection(pcConfig)
 
-    pc.oniceconnectionstatechange = (e) => {
-      // console.log(e);
-    }
+    pc.oniceconnectionstatechange = (e) => {}
 
     pc.onicecandidate = (e) => {
       if (e.candidate) {
@@ -242,7 +247,6 @@ function Beforemeeting() {
       const videoTrack = stream.getVideoTracks()[0]
       const audioTrack = stream.getAudioTracks()[0]
       pc.addTrack(videoTrack, stream)
-      // console.log("audio:",is_audio_true)
       if (isAudioTrue !== 0)
         // 나중에 수정하기
         pc.addTrack(audioTrack, stream)
@@ -257,9 +261,7 @@ function Beforemeeting() {
   function createReceiverPeerConnection(senderSocketId, userName, purpose) {
     const pc = new RTCPeerConnection(pcConfig)
     receivePCs[purpose][senderSocketId] = pc
-    pc.oniceconnectionstatechange = (e) => {
-      // console.log(e);
-    }
+    pc.oniceconnectionstatechange = (e) => {}
 
     pc.onicecandidate = (e) => {
       if (e.candidate) {
@@ -282,7 +284,6 @@ function Beforemeeting() {
         if (purpose === 'user') {
           userOntrackHandler(e.streams[0], userName, senderSocketId)
         }
-        // console.log('한번만 나오는지')
       }
       once += 1
     }
@@ -299,8 +300,6 @@ function Beforemeeting() {
         offerToReceiveVideo: false,
       })
       await pc.setLocalDescription(new RTCSessionDescription(offer))
-
-      // console.log("send offer:",offer);
 
       return offer
     } catch (error) {
@@ -381,7 +380,6 @@ function Beforemeeting() {
     video.autoplay = true
     video.playsinline = true
     video.srcObject = stream
-    console.log('접속자 이름:', userName)
     setOtherName(userName)
   }
 
@@ -408,7 +406,6 @@ function Beforemeeting() {
 
       removeUserVideo(socketId, userName)
       setOtherName('부재중')
-      console.log('나간사람 이름:', userName)
     } catch (e) {
       console.error(e)
     }
@@ -419,6 +416,10 @@ function Beforemeeting() {
   const [memoOpen, setMemoOpen] = useState(false)
   const handleMemoOpen = () => setMemoOpen(true)
   const handleMemoClose = () => setMemoOpen(false)
+
+  const [qnaOpen, setQnaOpen] = useState(false)
+  const handleQnaOpen = () => setQnaOpen(true)
+  const handleQnaClose = () => setQnaOpen(false)
 
   const [voice, setVoice] = useState(false)
   const handleToVoice = () => {
@@ -440,41 +441,28 @@ function Beforemeeting() {
   }
 
   const [otherName, setOtherName] = useState('부재중')
-  useLayoutEffect(() => {
-    console.log('한번만')
-  }, [])
+  useLayoutEffect(() => {}, [])
 
-  useEffect(() => {
-    console.log('voice : ' + voice + '// video : ' + video, '//otherName', otherName)
-  }, [voice, video])
+  useEffect(() => {}, [voice, video])
   return (
     <div className="before-meeting-container">
-      <div className="before-meeting-main">
-        <div className="before-meeting-left-person">
-          <video className="before-meeting-left-video" alt="상대방" poster={noProfileImg} />
-          <div className="before-meeting-left-person-name">{otherName}</div>
-        </div>
-        <div className="before-meeting-right-person">
-          <video className="before-meeting-right-video" alt="나" />
-          <div className="before-meeting-right-person-name">{myName}</div>
+      <div className="before-meeting-center">
+        <div className="before-meeting-main">
+          <div className="before-meeting-left-person">
+            <video className="before-meeting-left-video" alt="상대방" poster={noProfileImg} />
+            <div className="before-meeting-left-person-name">{otherName}</div>
+          </div>
+          <div className="before-meeting-right-person">
+            <video className="before-meeting-right-video" alt="나" />
+            <div className="before-meeting-right-person-name">{myName}</div>
+          </div>
         </div>
       </div>
       <div className="before-meeting-footer">
         <div className="before-meeting-time">
-          {today} {now}
+          <MeetingPresentTime key={10000}></MeetingPresentTime>
         </div>
         <div className="before-meeting-btn">
-          <div className="before-meeting-btn-memo-container" onClick={handleMemoOpen}>
-            <MeetingMemoModal open={memoOpen} close={handleMemoClose}></MeetingMemoModal>
-            <div className="before-meeting-btn-memo"></div>
-            <div className="before-meeting-btn-name">메모</div>
-          </div>
-          <div className="before-meeting-btn-memo-container" onClick={window.close}>
-            <div className="before-meeting-btn-door"></div>
-            <div className="before-meeting-btn-name">종료</div>
-          </div>
-        </div>
-        <div className="before-meeting-footer-right">
           {voice === false ? (
             <div className="before-meeting-footer-right-novoice" onClick={handleToVoice}></div>
           ) : (
@@ -485,7 +473,38 @@ function Beforemeeting() {
           ) : (
             <div className="before-meeting-footer-right-video" onClick={handleNoVideo}></div>
           )}
-          <div className="before-meeting-footer-right-chat"></div>
+        </div>
+        <div className="before-meeting-footer-right">
+          {isOwner === 'true' ? (
+            <>
+              <div className="before-meeting-btn-memo-container" onClick={handleMemoOpen}>
+                <div className="before-meeting-btn-memo"></div>
+                <div className="before-meeting-btn-name">메모</div>
+              </div>
+              <MeetingMemoModal
+                open={memoOpen}
+                onClose={handleMemoClose}
+                applySeq={parseInt(roomId.replace('prev', ''))}
+              ></MeetingMemoModal>
+              <div className="before-meeting-btn-memo-container" onClick={handleQnaOpen}>
+                <div className="before-meeting-btn-qna"></div>
+                <div className="before-meeting-btn-name">사전 질문</div>
+              </div>
+              <MeetingQna
+                open={qnaOpen}
+                onClose={handleQnaClose}
+                applySeq={parseInt(roomId.replace('prev', ''))}
+                postingSeq={postingSeq}
+              ></MeetingQna>
+            </>
+          ) : (
+            <></>
+          )}
+
+          <div className="before-meeting-btn-memo-container" onClick={window.close}>
+            <div className="before-meeting-btn-door"></div>
+            <div className="before-meeting-btn-name">종료</div>
+          </div>
         </div>
       </div>
     </div>

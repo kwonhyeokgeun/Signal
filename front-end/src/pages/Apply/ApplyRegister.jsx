@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react'
-import { TextField, MenuItem, InputLabel, FormControl, Select } from '@mui/material'
+import { TextField, MenuItem, InputLabel, FormControl, Select, Chip } from '@mui/material'
 import plusButton from '../../assets/image/plusButton.png'
 import ExpList from '../../components/Apply/ExpList'
 import CareerList from '../../components/Apply/CareerList'
-// import { createFilterOptions } from '@mui/material/Autocomplete'
 import '../../assets/styles/applyRegister.css'
-// import { Skilldata, getSkillCode } from 'data/Skilldata'
 import { Skilldata } from 'data/Skilldata'
 import { getPositionName, getPositionCode } from 'data/Positiondata'
 import QnAList from 'components/Apply/QnaList'
 import MeetingDtSelect from 'components/Meeting/MeetingDtSelect'
 import SignalBtn from 'components/common/SignalBtn'
 import { useLocation, useNavigate } from 'react-router-dom'
-// import { useNavigate, useLocation } from 'react-router-dom'/
 import ReactSelect from 'react-select'
 import { changeSelectForm } from 'utils/changeForm'
 import api from 'api/Api.js'
@@ -32,15 +29,9 @@ const textAreaStyle = {
 function ApplyRegister() {
   // start >> parameter
 
-  // 1. 아래 default postingSeq 지우기
-  // 2. const postingSeq = location.state.postingSeq
-  // 3. import { useNavigate, useLocation } from 'react-router-dom'
-
-  // const postingSeq = location.state.postingSeq
   const location = useLocation()
   const userSeq = sessionStorage.getItem('userSeq')
   const postingSeq = location.state.postingSeq
-  console.log(postingSeq)
 
   // end >> parameter
 
@@ -56,7 +47,6 @@ function ApplyRegister() {
   const [position, setPosition] = useState('')
   const [careerList, setCareerList] = useState([])
   const [expList, setExpList] = useState([])
-  const [skillList, setSkillList] = useState([])
   const [content, setContent] = useState('')
   const [questionList, setQuestionList] = useState([])
   const [answerList, setAnswerList] = useState([])
@@ -64,8 +54,9 @@ function ApplyRegister() {
   const [expSeq, setExpSeq] = useState(0)
   const [meetingList, setMeetingList] = useState([])
   const [meetingSeq, setMeetingSeq] = useState('')
-
-  // ene >> useState
+  const [numberOfTags, setNumberOfTags] = useState(0)
+  const [arrayOfTags, addTag] = useState([])
+  // end >> useState
 
   // start >> Fetch
   const dataFetch = async () => {
@@ -149,7 +140,6 @@ function ApplyRegister() {
     })
 
     setMeetingList(meetingDtArr)
-    console.log('meetingDtArr', meetingDtArr)
   }
 
   const careerPostFilter = (list) => {
@@ -179,27 +169,35 @@ function ApplyRegister() {
 
   // start >> handle skill
 
-  const handleSkillInput = (value) => {
-    setSkillList(value)
+  const handleSkillInput = (e) => {
+    if (e === null) return
+    newTag({
+      label: e.label,
+      value: e.value,
+    })
   }
 
-  // const handleSkillRemove = (id) => {
-  //   setSkillList(
-  //     skillList.filter((skill) => {
-  //       return skill !== id
-  //     })
-  //   )
-  // }
+  const newTag = (tag) => {
+    const set = arrayOfTags.concat(tag)
+    const uniqueTags = set.filter((arr, index, callback) => index === callback.findIndex((t) => t.label === arr.label))
+    setNumberOfTags(uniqueTags.length)
+    addTag(uniqueTags)
+  }
 
-  // start >> skill filter
-  // const skillSearchFilter = createFilterOptions({
-  //   matchFrom: 'start',
-  //   stringify: (option) => option.label,
-  // })
+  const tags = arrayOfTags.map((h, index) => (
+    <Chip
+      label={h.label}
+      value={h.value}
+      variant="outlined"
+      sx={{ fontSize: '20px', margin: '5px' }}
+      key={index}
+      onDelete={() => handleDelete(h)}
+    />
+  ))
 
-  // end >> skill filter
-
-  // end >> handle skill
+  const handleDelete = (h) => {
+    addTag((arrayOfTags) => arrayOfTags.filter((tag) => tag.label !== h.label))
+  }
 
   // start >> handle career
 
@@ -288,32 +286,18 @@ function ApplyRegister() {
     setAnswerList(answerArr)
   }
 
-  // end >> handle qna
-
-  // start >> handle meeting
-
   const handleMeetingDtChange = (key) => {
     setMeetingSeq(key)
-    console.log(key)
   }
 
-  // end >> handle meeting
-
-  // start >> post
-
   const handleApplySubmit = async () => {
-    const postingSeq = location.state.postingSeq
     try {
-      /**********************************************
-       * 수정사항 : 블랙리스트 검거 ^_^ ㅎㅎㅎㅎㅎ
-       **********************************************/
-
       // 지원서 req
       const applyReq = {
         applyAnswerList: answerList,
         applyCareerList: careerPostFilter(careerList),
         applyExpList: expPostFilter(expList),
-        applySkillList: skillPostFilter(skillList),
+        applySkillList: skillPostFilter(arrayOfTags),
         content,
         postingMeetingSeq: parseInt(meetingSeq),
         positionCode: getPositionCode(position),
@@ -332,20 +316,24 @@ function ApplyRegister() {
         throw new Error('미팅시간 선택안함')
       }
 
-      console.log(JSON.stringify(applyReq))
-
       await api
         .post(process.env.REACT_APP_API_URL + '/apply/' + postingSeq, applyReq)
         .then((res) => {
-          console.log(res)
+          navigate('/myprofile')
         })
-        .catch((err) => {
-          console.log(err)
+        .catch((error) => {
+          if (error.response) {
+            if (error.response.data.header.code === '402' || error.response.data.header.code === '403') {
+              Swal.fire(error.response.data.header.message, '관리자에게 문의해주세요', 'warning')
+            } else if (error.response.data.header.code === '405') {
+              Swal.fire(error.response.data.header.message, '블랙리스트에 등록된 유저입니다', 'error')
+            } else if (error.response.data.header.code === '406') {
+              Swal.fire(error.response.data.header.message, '마이페이지를 확인해주세요', 'warning')
+            } else if (error.response.data.header.code === '407') {
+              Swal.fire(error.response.data.header.message, '하트 충전 후 이용해주세요', 'warning')
+            }
+          }
         })
-      console.log('postingSeq')
-
-      console.log('지원서 post')
-      navigate('/')
     } catch (error) {
       console.log(error)
     }
@@ -426,14 +414,21 @@ function ApplyRegister() {
             </div>
           </div>
           <div className="apply-register-skill-section">
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
               <div style={{ minWidth: '12.5%', alignItems: 'center' }}>
                 <span className="apply-register-label">사용기술</span>
               </div>
-              <div>
-                <ReactSelect onChange={handleSkillInput} options={changeSelectForm(Skilldata)} isMulti />
+              <div className="apply-register-skill-select">
+                <ReactSelect
+                  placeholder=""
+                  isClearable
+                  onChange={handleSkillInput}
+                  isSearchable={true}
+                  options={changeSelectForm(Skilldata)}
+                />
               </div>
             </div>
+            <div>{numberOfTags > 0 ? tags : ''}</div>
           </div>
           <div className="apply-register-career-exp-section">
             <div style={{ width: '50%' }}>

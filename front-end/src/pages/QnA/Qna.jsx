@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
-import Paging from 'components/Paging'
+import Paging from 'components/common/Paging'
 import { Link, useNavigate } from 'react-router-dom'
 import SignalBtn from 'components/common/SignalBtn'
 import 'assets/styles/qna.css'
@@ -8,6 +8,7 @@ import 'assets/styles/table.css'
 import api from 'api/Api.js'
 
 function Qna() {
+  const isAdmin = sessionStorage.getItem('admin')
   const [data, setData] = useState([])
 
   const [size] = useState(8)
@@ -33,6 +34,7 @@ function Qna() {
       title: item.title,
       regDt: item.regDt.split(' ', 1),
       view: item.view,
+      isTop: item.isTop,
     })
   })
   const rowLen = rows.length
@@ -53,19 +55,22 @@ function Qna() {
       <div className="qna-container">
         <div className="qna-header">
           <div className="qna-header-title">Q & A</div>
-          <div className="qna-header-regist">
-            <SignalBtn
-              sigwidth="84px"
-              sigheight="45px"
-              sigfontsize="24px"
-              sigborderradius={14}
-              sigmargin="0px 0px 5px 0px"
-              variant="contained"
-              onClick={() => navigate(`/qnaRegist`)}
-            >
-              등록
-            </SignalBtn>
-          </div>
+          {isAdmin === 'false' ? (
+            <div className="qna-header-regist">
+              <SignalBtn
+                sigwidth="84px"
+                sigheight="45px"
+                sigfontsize="24px"
+                sigborderradius={14}
+                sigmargin="0px 0px 5px 0px"
+                onClick={() => navigate(`/qnaRegist`)}
+              >
+                등록
+              </SignalBtn>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
         <div className="qna-table">
           <TableContainer>
@@ -80,8 +85,12 @@ function Qna() {
               </TableHead>
               <TableBody>
                 {rows.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell align="center">{row.id}</TableCell>
+                  <TableRow key={index} className={`qna-list-faq ${row.isTop === true ? 'active' : ''}`}>
+                    {row.title !== ' ' ? (
+                      <TableCell align="center">{index + 1}</TableCell>
+                    ) : (
+                      <TableCell align="center"></TableCell>
+                    )}
                     <TableCell align="left">
                       <Link to={`/qnaDetail`} state={{ id: row.id }}>
                         {row.title}

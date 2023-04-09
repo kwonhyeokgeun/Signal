@@ -4,11 +4,11 @@ import Modal from '@mui/material/Modal'
 import { TextField } from '@mui/material'
 import 'assets/styles/profile/profileinput.css'
 import SignalBtn from 'components/common/SignalBtn'
-import AlertModal from 'components/AlertModal'
+import AlertModal from 'components/common/AlertModal'
 import closeBtn from 'assets/image/x.png'
 import api from 'api/Api'
 
-function TodoPlusModal({ open, onClose, handleFlag, flag, userSeq }) {
+function TodoPlusModal({ open, onClose, handleFlag, flag, userSeq, projectSeq }) {
   const [todo, setTodo] = useState('')
   const handleInput = (e) => {
     const { name, value } = e.target
@@ -28,7 +28,6 @@ function TodoPlusModal({ open, onClose, handleFlag, flag, userSeq }) {
   }
 
   const handleToAdd = async () => {
-    const projectSeq = 721
     try {
       const todoReq = {
         content: todo.content,
@@ -42,7 +41,6 @@ function TodoPlusModal({ open, onClose, handleFlag, flag, userSeq }) {
           },
         })
         .then((res) => {
-          console.log(res)
           setAlert(true)
         })
         .catch((err) => {
@@ -52,6 +50,13 @@ function TodoPlusModal({ open, onClose, handleFlag, flag, userSeq }) {
       console.log(e)
     }
   }
+
+  const activeEnter = (e) => {
+    if (e.key === 'Enter') {
+      handleToAdd()
+    }
+  }
+
   return (
     <>
       <Modal open={open} onClose={onClose}>
@@ -80,6 +85,7 @@ function TodoPlusModal({ open, onClose, handleFlag, flag, userSeq }) {
                 label="To Do"
                 sx={inputStyle}
                 onChange={handleInput}
+                onKeyDown={(e) => activeEnter(e)}
               />
             </div>
             <div className="user-profile-input-check-btn">
@@ -114,7 +120,6 @@ const style = {
   transform: 'translate(-50%, -50%)',
   display: 'flex',
   justifyContent: 'center',
-  // overflow: 'hidden',
 }
 
 const inputStyle = {

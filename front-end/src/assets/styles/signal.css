@@ -1,16 +1,13 @@
 .signal-page-container {
   width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   flex-direction: column;
-  justify-content: center;
   padding-top: 108px;
 }
 
 .signal-container {
   width: 1125px;
-  margin: auto;
 }
 
 .signal-header {
@@ -23,7 +20,7 @@
   font-size: 44px;
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
+  margin-right: 2em;
 }
 
 .signal-header-regist {
@@ -150,7 +147,6 @@ a {
 /* signalRegist */
 .signal-regist-container {
   width: 1125px;
-  height: 650px;
   margin: 70px auto;
 }
 .signal-regist-header {
@@ -164,4 +160,17 @@ a {
 .signal-regist-main {
   padding: 55px;
   font-size: 24px;
+}
+.signal-regist-title {
+  font-size: 44px;
+}
+
+.signal-term-valid-box {
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(221, 219, 236, 0.6);
+  border-radius: 25px;
+  margin: 20px;
 }

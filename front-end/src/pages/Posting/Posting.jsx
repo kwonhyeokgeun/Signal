@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import styled from '@emotion/styled'
-// import JavaScript from '../../assets/image/Skilltest'
 import PostingCardItem from 'components/Posting/PostingCardItem'
 import Box from '@mui/material/Box'
 import Tab from '@mui/material/Tab'
@@ -13,12 +12,12 @@ import TextField from '@mui/material/TextField'
 import { Skilldata, Skilldatabtn } from 'data/Skilldata'
 import '../../assets/styles/posting.css'
 import { useNavigate } from 'react-router-dom'
-import Paging from 'components/Paging'
+import Paging from 'components/common/Paging'
 import api from 'api/Api'
-// import SkillList from 'components/Apply/SkillList'
-// import { useQuery } from 'react-query'
-// import { Input } from 'assets/styles/apply'
-// const SERVER_URL = 'http://tableminpark.iptime.org:8080/posting'
+import Lottie from 'react-lottie'
+import searchani from 'assets/lottie/searchani'
+import { Typography } from '@mui/material'
+
 const Tab2 = styled(Tab)(({ theme }) => ({
   fontSize: '21px',
   fontcolor: '#000000',
@@ -51,24 +50,18 @@ const skillStyle = {
 }
 
 function Posting() {
-  // 카드 리스트 정보
-  // const { status, data, error, isFetching } = useQuery('postlist', async () => {
-  // const result = useQuery('postlist', () =>
-  //   axios.get(`http://www.ssafysignal.site:8080/posting?page=1&size=100&fieldCode=FI100`).then((a) => {
-  //     return a.data
-  //   })
-  // )
-  // `${process.env.REACT_APP_API_URL}/posting?page=1&size=200&subject=${Title}&localCode=${local}&fieldCode=${value}&postingSkillList=`
-  // console.log(result.data?.body?.postingList)
-  // const userName = sessionStorage.getItem('username')
-  // console.log(userName)
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: searchani,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid slice',
+    },
+  }
+
   const navigate = useNavigate()
   const [postingList, setPostingList] = useState([])
-  // result.data && setPostingList(result.data?.body?.postingList)
-  // 테이블 코드 state Field 코드
-  const [value, setValue] = React.useState('FI100')
-  // 버튼 색 변경
-  // console.log(...skillBtnList)
+  const [value, setValue] = React.useState('')
   const [local, setLocal] = useState('')
   const [skillImgIs, setSkillImgIst] = useState({
     0: false,
@@ -86,25 +79,25 @@ function Posting() {
     const copy = { ...skillImgIs }
     copy[index] = !copy[index]
     setSkillImgIst(copy)
-  } // 클릭했을때 async 요청보내는 리액트 코드
-  // 버튼 누르면 데이터 담기게 state
+  }
+
   const [skillList, setSkillList] = useState([])
   const [skillListauto, setSkillListauto] = useState([])
   const [skillaxios, setSkillAxios] = useState([])
 
   const handleChangeSkill = (value) => {
     const copy = value.map((ele) => ele.code)
-    console.log(copy)
+
     setSkillListauto(copy)
   }
-  // 테이블 값적용
+
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
   const handleChangeLocal = (e) => {
     setLocal(e.target.value)
   }
-  // search from
+
   const debounceFuntion = (callack, delay) => {
     let timer
     return (...args) => {
@@ -119,21 +112,18 @@ function Posting() {
   )
   const handleChangeTitle = (e) => {
     printValue(e.target.value)
-    // setTitle(e.target.value)
   }
 
   const [page, setPage] = useState(1)
-  const [size] = useState(20)
+  const [size] = useState(16)
   const [count, setCount] = useState(0)
   const handleToPage = (page) => {
     setPage(page)
   }
 
   const postList = async () => {
-    await api.get(process.env.REACT_APP_API_URL + `/posting?page=${page}&size=${size}&fieldCode=FI100`).then((res) => {
+    await api.get(process.env.REACT_APP_API_URL + `/posting?page=${page}&size=${size}`).then((res) => {
       setPostingList(res.data.body.postingList)
-    })
-    await api.get(process.env.REACT_APP_API_URL + '/posting/count').then((res) => {
       setCount(res.data.body.count)
     })
   }
@@ -143,9 +133,8 @@ function Posting() {
       process.env.REACT_APP_API_URL +
         `/posting?page=${page}&size=${size}&subject=${Title}&localCode=${local}&fieldCode=${value}&postingSkillList=${skillaxios}`
     )
+    setCount(res.data.body.count)
     setPostingList(res.data.body.postingList)
-
-    // console.log(Title)/
   }
   useEffect(() => {
     postList()
@@ -153,12 +142,6 @@ function Posting() {
   useEffect(() => {
     btnClickAxios()
   }, [value, local, Title, skillaxios, page])
-  // useEffect(() => {
-  //   btnClickAxios()
-  // }, [local])
-  // useEffect(() => {
-  //   btnClickAxios()
-  // }, [Title])
   useEffect(() => {
     const copy = [...skillList, ...skillListauto]
     const set = new Set(copy)
@@ -167,18 +150,32 @@ function Posting() {
   }, [skillList, skillListauto])
   return (
     <div>
-      <Banner />
+      <Banner style={{ height: '110px' }} />
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', height: '100%' }}>
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            gap: '0px 60px',
+            left: '50%',
+            transform: 'translate(-50%, 0)',
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: ' center' }}>
+            <Typography fontSize={40} style={{ whiteSpace: 'nowrap' }}>
+              프로젝트를 찾는 가장 쉬운 방법
+            </Typography>
+          </div>
+          <div>
+            <Lottie options={defaultOptions} height={300} width={400} />
+          </div>
+        </div>
+        <Banner />
+      </div>
       <Container>
         <Box sx={{ width: '100%', mb: 2 }}>
-          {/* <button
-            onClick={() => {
-              console.log(skillList, 'SkillList')
-              console.log(skillListauto, 'skillListauto')
-              console.log(skillaxios)
-            }}
-          >
-            ㅇ
-          </button> */}
           <TabContext value={value}>
             <Box sx={{ borderBottom: 2, color: '#574B9F' }}>
               <TabList
@@ -186,14 +183,44 @@ function Posting() {
                 aria-label="lab API tabs example"
                 TabIndicatorProps={{ style: { background: '#574B9F' } }}
               >
+                <Tab2 label="All" value="" />
                 <Tab2 label="Web" value="FI100" />
                 <Tab2 label="android" value="FI101" />
                 <Tab2 label="iOS" value="FI102" />
                 <Tab2 label="IoT" value="FI104" />
                 <Tab2 label="AI" value="FI105" />
-                <Tab2 label="All" value="" />
               </TabList>
             </Box>
+            <TabPanel value="">
+              <SkillSelectBox>
+                {Skilldatabtn.map((ele, i) => (
+                  <Skillbtn
+                    style={{ backgroundColor: skillImgIs[i] ? '#bcb7d9' : null }}
+                    onClick={() => {
+                      changeSkillBtn(i)
+                      const copy = [...skillList]
+                      const set = new Set(copy)
+                      if (set.has(ele.code)) {
+                        set.delete(ele.code)
+                      } else {
+                        set.add(ele.code)
+                      }
+                      const copy2 = Array.from(set)
+                      setSkillList(copy2)
+                    }}
+                    key={i}
+                  >
+                    {' '}
+                    <img
+                      src={process.env.REACT_APP_API_URL + ele.url}
+                      alt="JavaScript"
+                      style={{ marginRight: '1em', width: '47px', height: '37px' }}
+                    />
+                    {ele.name}
+                  </Skillbtn>
+                ))}
+              </SkillSelectBox>
+            </TabPanel>
             <TabPanel value="FI100">
               <SkillSelectBox>
                 {Skilldatabtn.map((ele, i) => (
@@ -344,36 +371,6 @@ function Posting() {
                 ))}
               </SkillSelectBox>
             </TabPanel>
-            <TabPanel value="">
-              <SkillSelectBox>
-                {Skilldatabtn.map((ele, i) => (
-                  <Skillbtn
-                    style={{ backgroundColor: skillImgIs[i] ? '#bcb7d9' : null }}
-                    onClick={() => {
-                      changeSkillBtn(i)
-                      const copy = [...skillList]
-                      const set = new Set(copy)
-                      if (set.has(ele.code)) {
-                        set.delete(ele.code)
-                      } else {
-                        set.add(ele.code)
-                      }
-                      const copy2 = Array.from(set)
-                      setSkillList(copy2)
-                    }}
-                    key={i}
-                  >
-                    {' '}
-                    <img
-                      src={process.env.REACT_APP_API_URL + ele.url}
-                      alt="JavaScript"
-                      style={{ marginRight: '1em', width: '47px', height: '37px' }}
-                    />
-                    {ele.name}
-                  </Skillbtn>
-                ))}
-              </SkillSelectBox>
-            </TabPanel>
           </TabContext>
         </Box>
 
@@ -386,13 +383,11 @@ function Posting() {
             options={Skilldata}
             getOptionLabel={(option) => option.name}
             onChange={(event, newValue) => {
-              // console.log(newValue)
               handleChangeSkill(newValue)
             }}
             renderInput={(params) => <TextField {...params} label="기술 스택 검색" placeholder="Skill" />}
             sx={{ skillStyle, width: 1 / 3, mb: 3, backgroundColor: '#fbfbfd' }}
           />
-          {/* <div style={{ width: '50%' }}>dd</div> */}
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <SearchForms sx={{ flexGrow: 1 }}>
@@ -435,6 +430,7 @@ const Container = styled.div`
   border-radius: 4px;
   flex-direction: column; 
   }
+  margin-bottom: 50px;
 `
 const Banner = styled.div`
   width: 100%;
@@ -468,11 +464,15 @@ const Skillbtn = styled.div`
 `
 
 const PostList = styled.div`
+  margin-top: 3em;
   display: flex;
+  margin-left: 1em;
+  margin-right: 1em;
   flex-wrap: wrap;
+  justify-content: start;
+  text-items: center;
   padding: 4px;
   gap: 10px;
-  justify-content: center;
   &:hover {
     $ .postcard {
       background: cornflowerblue;
@@ -525,6 +525,11 @@ const FilterInput = styled.input`
   &:hover {
     border: 1px solid #3396f4;
     box-shadow: inset 0 0 0 1px#3396f4;
+  }
+  &.active-warning {
+    margin-bottom: 4px;
+    border: 1px solid #f44336;
+    box-shadow: inset 0 0 0 1px #ff77774d;
   }
 `
 export { Posting, FilterInput }

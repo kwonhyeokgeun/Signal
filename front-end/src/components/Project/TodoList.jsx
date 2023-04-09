@@ -13,8 +13,9 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import plusBtn from 'assets/image/plusButton.png'
 import api from 'api/Api'
 import moment from 'moment'
+import AlertModal from 'components/common/AlertModal'
 
-function TodoList() {
+function TodoList({ projectSeq }) {
   const today = moment(new Date()).format('YYYY-MM-DD')
   const [dateValue, setDateValue] = useState(today)
 
@@ -23,6 +24,7 @@ function TodoList() {
   const handleToClose = () => {
     setOpenTodoPlus(false)
     setTodoModifyOpen(false)
+    setComplAlertOpen(false)
   }
 
   function dateToString(value) {
@@ -62,15 +64,13 @@ function TodoList() {
       nickname: item.nickname,
     })
   )
-  console.log(memberList)
 
   useEffect(() => {
     MemberFetch()
   }, [])
 
-  const [tab, setTab] = useState(sessionStorage.getItem('userSeq'))
   const [userSeq, setUserSeq] = useState(sessionStorage.getItem('userSeq'))
-  const projectSeq = 721
+  const currentUser = sessionStorage.getItem('userSeq')
   const regDt = dateValue
 
   const [data, setData] = useState('')
@@ -91,9 +91,6 @@ function TodoList() {
       method: 'GET',
       params: { userSeq, projectSeq, regDt },
     }).then((res) => {
-      console.log(res.data.body)
-      console.log('userSeq:', userSeq)
-      console.log('tab:', tab)
       setData(res.data.body)
     })
   }, [flag, userSeq])
@@ -118,17 +115,23 @@ function TodoList() {
   }
   AddArray()
 
-  const handleCompleteTodo = async (e) => {
-    if (e.target.checked === true) {
-      await api
-        .put(process.env.REACT_APP_API_URL + '/todo/state/' + e.target.id, true)
-        .then(() => {
-          setFlag(!flag)
-        })
-        .catch((err) => {
-          console.log(err)
-        })
-    }
+  const [complAlertOpen, setComplAlertOpen] = useState(false)
+  const [todoId, setTodoId] = useState('')
+  const handleToComplAlert = (e) => {
+    setTodoId(e.target.id)
+    setComplAlertOpen(true)
+  }
+
+  const handleCompleteTodo = async () => {
+    setComplAlertOpen(false)
+    await api
+      .put(process.env.REACT_APP_API_URL + '/todo/state/' + todoId, true)
+      .then(() => {
+        setFlag(!flag)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
   }
 
   const [todoModifyOpen, setTodoModifyOpen] = useState(false)
@@ -138,11 +141,9 @@ function TodoList() {
     const { id } = e.target
     const nextSeq = { ...todoSeq, id }
     setTodoSeq(nextSeq.id)
-    console.log('.', nextSeq.id)
     try {
       await api.get(process.env.REACT_APP_API_URL + '/todo/' + e.target.id).then((res) => {
         setContent(res.data.body.content)
-        console.log(res.data.body.content)
       })
     } catch (e) {
       console.log(e)
@@ -150,51 +151,55 @@ function TodoList() {
     alertOpen()
   }
   const alertOpen = () => {
-    setTodoModifyOpen(true)
+    if (userSeq === JSON.parse(currentUser)) setTodoModifyOpen(true)
   }
 
   return (
     <>
       <div className="todo-person-tab-container">
         <div className="todo-person-tab-list">
-          {memberList.map((mem, index) => (
-            <div
-              key={mem.userSeq}
-              id={index}
-              className={`todo-person-tab ${tab === mem.userSeq ? 'active' : ''}`}
-              onClick={() => {
-                setTab(mem.userSeq)
-                setUserSeq(mem.userSeq)
-              }}
-            >
-              {mem.nickname}
-            </div>
-          ))}
-          <div className="todo-date">
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                value={dateValue}
-                inputFormat="YYYY-MM-DD"
-                onChange={dateInput}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    sx={{
-                      '.MuiInputBase-input': { border: 0 },
-                    }}
-                  />
-                )}
-              />
-              {console.log(dateValue)}
-            </LocalizationProvider>
-          </div>
+          {memberList.map((mem, index) => {
+            return (
+              <div
+                key={mem.userSeq}
+                id={index}
+                className={`todo-person-tab ${
+                  userSeq === mem.userSeq || (index === 0 && userSeq === currentUser) ? 'active' : ''
+                }`}
+                onClick={() => {
+                  setUserSeq(mem.userSeq)
+                }}
+              >
+                {mem.nickname}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+      <div className="todo-date-container">
+        <div className="todo-date">
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              value={dateValue}
+              inputFormat="YYYY-MM-DD"
+              onChange={dateInput}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  sx={{
+                    '.MuiInputBase-input': { border: 0 },
+                  }}
+                />
+              )}
+            />
+          </LocalizationProvider>
         </div>
       </div>
       <div className="todo-kanban-container">
         <div className="todo-todos-container">
           <div className="todo-todos-header">
             <div className="todo-todos-title">ToDos</div>
-            {dateValue === today ? (
+            {(dateValue === today && userSeq === JSON.parse(currentUser)) || userSeq === currentUser ? (
               <div className="todo-todos-plus" onClick={handleToAlert}>
                 <img src={plusBtn} alt="" />
               </div>
@@ -203,6 +208,7 @@ function TodoList() {
             )}
             <TodoPlusModal
               userSeq={userSeq}
+              projectSeq={projectSeq}
               open={openTodoPlus}
               onClose={handleToClose}
               handleFlag={handleFlag}
@@ -213,21 +219,29 @@ function TodoList() {
             {todoList.map((todo, index) => (
               <>
                 <div className="todo-todos-list-item" key={todo.todoSeq} id={todo.todoSeq}>
-                  {dateValue === today ? (
-                    <FormControlLabel
-                      onChange={handleCompleteTodo}
-                      control={
-                        <Checkbox
-                          id={todo.todoSeq}
-                          defaultChecked={false}
-                          sx={{
-                            '& .MuiSvgIcon-root': { fontSize: 30 },
-                            color: '#574B9F',
-                            '&.Mui-checked': { color: '#574B9F' },
-                          }}
-                        />
-                      }
-                    />
+                  {(dateValue === today && userSeq === JSON.parse(currentUser)) || userSeq === currentUser ? (
+                    <>
+                      <FormControlLabel
+                        onChange={handleToComplAlert}
+                        control={
+                          <Checkbox
+                            id={todo.todoSeq}
+                            defaultChecked={false}
+                            sx={{
+                              '& .MuiSvgIcon-root': { fontSize: 30 },
+                              color: '#574B9F',
+                              '&.Mui-checked': { color: '#574B9F' },
+                            }}
+                          />
+                        }
+                      />
+                      <AlertModal
+                        open={complAlertOpen}
+                        onClick={handleCompleteTodo}
+                        onClose={handleToClose}
+                        msg="완료하셨습니까?"
+                      ></AlertModal>
+                    </>
                   ) : (
                     <WarningAmberIcon
                       sx={{
@@ -265,7 +279,6 @@ function TodoList() {
               <>
                 <div className="todo-completed-list-item" key={todo.todoSeq} id={todo.todoSeq}>
                   <FormControlLabel
-                    onChange={handleCompleteTodo}
                     control={
                       <Checkbox
                         id={todo.todoSeq}

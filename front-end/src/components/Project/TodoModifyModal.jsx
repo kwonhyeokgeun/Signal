@@ -4,7 +4,7 @@ import Modal from '@mui/material/Modal'
 import { TextField } from '@mui/material'
 import 'assets/styles/profile/profileinput.css'
 import SignalBtn from 'components/common/SignalBtn'
-import AlertModal from 'components/AlertModal'
+import AlertModal from 'components/common/AlertModal'
 import closeBtn from 'assets/image/x.png'
 import api from 'api/Api'
 
@@ -43,7 +43,6 @@ function TodoModifyModal({ open, onClose, flag, handleFlag, todoSeq, content }) 
   const handleToDelete = () => {
     try {
       api.delete(process.env.REACT_APP_API_URL + '/todo/' + todoSeq).then((res) => {
-        console.log(res)
         handleFlag(!flag)
       })
     } catch (e) {
@@ -51,7 +50,6 @@ function TodoModifyModal({ open, onClose, flag, handleFlag, todoSeq, content }) 
     }
     setDeleteOpen(false)
     onClose(onClose(true))
-    handleFlag(!flag)
   }
   const handleToClose = () => {
     setModifyOpen(false)
@@ -59,6 +57,7 @@ function TodoModifyModal({ open, onClose, flag, handleFlag, todoSeq, content }) 
     onClose(true)
     handleFlag(flag)
   }
+
   return (
     <>
       <Modal open={open} onClose={onClose}>
@@ -144,7 +143,6 @@ const style = {
   transform: 'translate(-50%, -50%)',
   display: 'flex',
   justifyContent: 'center',
-  // overflow: 'hidden',
 }
 
 const inputStyle = {

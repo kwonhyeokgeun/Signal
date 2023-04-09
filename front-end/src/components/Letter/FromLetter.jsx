@@ -2,17 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import LetterDetail from './LetterDetail'
 import trashcan from 'assets/image/TrashLetter.png'
-import AlertModal from '../AlertModal'
+import AlertModal from '../common/AlertModal'
 import api from 'api/Api'
-// import clsx from 'clsx'
-// import Box from '@mui/material/Box'
 
 function FromLetter({ handleChangeView, view, handleMenuListItemClick }) {
   const [data, setData] = useState([])
   const [alertOpen, setAlertOpen] = useState(false)
   useEffect(() => {
     api.get(process.env.REACT_APP_API_URL + `/letter/to/${sessionStorage.getItem('userSeq')}`).then((res) => {
-      console.log(res.data.body)
       setData(res.data.body)
     })
   }, [])
@@ -40,7 +37,6 @@ function FromLetter({ handleChangeView, view, handleMenuListItemClick }) {
     const rowId = e.id
     const nextViewDetail = { ...view, rowId }
     handleChangeView(nextViewDetail.rowId)
-    console.log(nextViewDetail.rowId)
   }
 
   const handleAlert = (e) => {
@@ -48,16 +44,16 @@ function FromLetter({ handleChangeView, view, handleMenuListItemClick }) {
     handleMenuListItemClick(2)
   }
 
-  const [letterList, setLetterList] = useState({ letterSeq: '' })
+  const [letterList, setLetterList] = useState([])
 
   const handleToTrash = () => {
-    const a = letterList.map((item) => {
-      return { letterSeq: item }
-    })
-    api.delete(process.env.REACT_APP_API_URL + '/letter/list', JSON.stringify({ letterSeqList: a })).then((res) => {
-      console.log(res.data.body)
-      setAlertOpen(true)
-    })
+    if (letterList.length > 0) {
+      api
+        .delete(process.env.REACT_APP_API_URL + `/letter/list?letterSeqList=${JSON.stringify(letterList).slice(1, -1)}`)
+        .then((res) => {
+          setAlertOpen(true)
+        })
+    }
   }
 
   return (

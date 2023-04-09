@@ -37,9 +37,9 @@ function ProjectProfile({ Data }) {
   const position = Data.position.name
   const warningCnt = Data.warningCnt
   const nickname = Data.nickname
-  // const imageUrl = Data.profileImageUrl
+  const url = Data.profileImageUrl
 
-  const [imageUrl, setimageUrl] = useState(Data.profileImageUrl)
+  const [imageUrl, setimageUrl] = useState(process.env.REACT_APP_API_URL + Data.profileImageUrl)
   const [kickAble, setkickAble] = useState(false)
 
   const checkUser = () => {
@@ -61,6 +61,7 @@ function ProjectProfile({ Data }) {
         title: '퇴출 완료',
         text: '팀원이 퇴출되었습니다',
       })
+      window.location.reload()
     } catch (error) {
       console.log(error)
 
@@ -80,7 +81,7 @@ function ProjectProfile({ Data }) {
     <div className="team-maintain-profile">
       <div className="team-maintain-profile-section">
         <div className="team-maintain-profile-image">
-          <img src={noProfile} alt="" />
+          <img src={process.env.REACT_APP_API_URL + url} alt="" />
         </div>
         <div className="team-maintain-profile-text">
           <div className="team-maintain-profile-nickname">{nickname}</div>

@@ -4,16 +4,19 @@ import Modal from '@mui/material/Modal'
 import { TextField } from '@mui/material'
 import 'assets/styles/profile/profileinput.css'
 import SignalBtn from 'components/common/SignalBtn'
-import AlertModal from 'components/AlertModal'
+import AlertModal from 'components/common/AlertModal'
 import closeBtn from 'assets/image/x.png'
 import api from 'api/Api'
-// import api from 'api/Api'
 
-function InputUrlModal({ open, onClose, inputTitle, handleSetValue }) {
+function InputUrlModal({ open, onClose, inputTitle, handleSetValue, index, projectSeq }) {
   const [url, setUrl] = useState('')
   const [alert, setAlert] = useState(false)
   const handleToPlus = () => {
     handleSetValue(url)
+    api.post(process.env.REACT_APP_API_URL + `/notiondocs/${projectSeq}`, {
+      url,
+      num: index,
+    })
     setAlert(false)
     onClose(true)
   }
@@ -94,7 +97,6 @@ const style = {
   transform: 'translate(-50%, -50%)',
   display: 'flex',
   justifyContent: 'center',
-  // overflow: 'hidden',
 }
 
 const inputStyle = {

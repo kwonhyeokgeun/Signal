@@ -11,9 +11,10 @@ export default function PostingCardItem({ post }) {
   return (
     <Card
       sx={{
-        minWidth: 275,
+        width: '22.5%',
+        ml: 1.5,
         mb: 2,
-        mr: 2,
+        mr: 1,
         '&:hover': {
           boxShadow: '0 0 0 2px #bcb7d9',
           cursor: 'pointer',
@@ -24,19 +25,35 @@ export default function PostingCardItem({ post }) {
       }}
     >
       <CardContent>
-        <Typography sx={{ fontSize: 20 }} color="black" gutterBottom>
-          {post.subject}
-        </Typography>
+        <div>
+          <Typography
+            sx={{
+              fontSize: 20,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              lineHeight: 1.5,
+            }}
+            color="black"
+            gutterBottom
+          >
+            {post.subject}
+          </Typography>
+        </div>
+
         <Typography variant="body2">{Localdata[post.localCode].name}</Typography>
         <Typography variant="body2">{Fielddata[post.fieldCode].name}</Typography>
         <Box sx={{ display: 'flex' }}>
           {post.postingSkillList.map((ele) => {
             return (
               <Box sx={{ mr: 1, fontSize: '13px' }} key={ele.postingSkillSeq}>
-                {/* {JSON.stringify(ele.code.url)} */}
                 <img
                   src={process.env.REACT_APP_API_URL + ele.code.url}
-                  alt=""
+                  alt=" "
                   style={{ width: '25px', height: '25px' }}
                 />
               </Box>

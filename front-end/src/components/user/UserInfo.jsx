@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import SignalBtn from 'components/common/SignalBtn'
-// import ProfileImg from 'assets/image/profileimg2.jpeg'
 import heart from 'assets/image/heart.png'
+import HeartDetailModal from '../common/HeartDetailModal'
 import UserModifyModal from 'components/user/UserModifyModal'
 import UserPwdModal from 'components/user/UserPwdModal'
-import AlertModal from 'components/AlertModal'
-import axios from 'axios'
+import AlertModal from 'components/common/AlertModal'
 import { useNavigate } from 'react-router-dom'
 import api from 'api/Api'
 
@@ -33,13 +32,20 @@ function UserInfo() {
   const handleToClose = () => {
     setAlertOpen(false)
     setUserPwdOpen(false)
+    setHeartOpen(false)
+    getHeartCnt()
+  }
+
+  const [heartOpen, setHeartOpen] = useState(false)
+  const handleToHeart = () => {
+    setHeartOpen(true)
   }
 
   const handleToMain = async () => {
     const userSeq = sessionStorage.getItem('userSeq')
     setAlertOpen(false)
     try {
-      await axios
+      await api
         .delete(process.env.REACT_APP_API_URL + '/user/' + userSeq)
         .then((res) => {
           sessionStorage.removeItem('accessToken')
@@ -47,7 +53,6 @@ function UserInfo() {
           sessionStorage.removeItem('userEmail')
           sessionStorage.removeItem('username')
           sessionStorage.removeItem('userSeq')
-          console.log(res)
           navigate('/')
           window.location.reload()
         })
@@ -69,8 +74,18 @@ function UserInfo() {
     }
   }
 
+  const [heartCnt, setHeartCnt] = useState(0)
+  const getHeartCnt = async () => {
+    await api
+      .get(process.env.REACT_APP_API_URL + '/profile/heartCnt/' + sessionStorage.getItem('userSeq'))
+      .then((res) => {
+        setHeartCnt(res.data.body)
+      })
+  }
+
   useEffect(() => {
     userFetch()
+    getHeartCnt()
   }, [])
 
   return (
@@ -80,16 +95,17 @@ function UserInfo() {
         <div className="my-user-nickname">{userInfo.nickname}</div>
         <div className="my-user-email">{userInfo.email}</div>
       </div>
-      <div className="my-user-heart">
+      <div className="my-user-heart" onClick={handleToHeart}>
         <img className="my-user-heart-img" src={heart} alt="" />
-        <div className="my-user-heart-cnt">{userInfo.heartCnt}</div>
+        <div className="my-user-heart-cnt">{heartCnt}</div>
       </div>
+      <HeartDetailModal open={heartOpen} onClose={handleToClose} mode="user"></HeartDetailModal>
       <div className="my-user-btn">
         <SignalBtn
           className="my-user-btn-modify"
-          sigwidth="100px"
-          sigheight="28px"
-          sigfontsize="15px"
+          sigwidth="120px"
+          sigheight="38px"
+          sigfontsize="19px"
           sigborderradius={24}
           onClick={handleToModify}
         >
@@ -98,9 +114,9 @@ function UserInfo() {
         <UserModifyModal open={userModifyOpen} onClose={handleModifyClose}></UserModifyModal>
         <SignalBtn
           className="my-user-btn-pwd"
-          sigwidth="100px"
-          sigheight="28px"
-          sigfontsize="15px"
+          sigwidth="120px"
+          sigheight="38px"
+          sigfontsize="19px"
           sigborderradius={24}
           sx={userModifyStyle}
           onClick={handleToPwd}
@@ -110,9 +126,9 @@ function UserInfo() {
         <UserPwdModal open={userPwdOpen} onClose={handleToClose}></UserPwdModal>
         <SignalBtn
           className="my-user-btn-delete"
-          sigwidth="100px"
-          sigheight="28px"
-          sigfontsize="15px"
+          sigwidth="120px"
+          sigheight="38px"
+          sigfontsize="19px"
           sigborderradius={24}
           sx={userDeleteStyle}
           onClick={handleToOut}

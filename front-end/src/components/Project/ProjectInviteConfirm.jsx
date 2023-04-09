@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Button } from '@mui/material'
-import { Experimental_CssVarsProvider as CssVarsProvider, styled } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogTitle from '@mui/material/DialogTitle'
@@ -46,7 +46,6 @@ function ProjectTeamSelectConfirmModal(props) {
     setOpen(false)
   }
   const handleTeamSelect = async (e) => {
-    console.log(props.valid)
     if (props.valid) {
       const applySeq = props.apply.applySeq
       const adminSeq = sessionStorage.getItem('userSeq')
@@ -58,10 +57,6 @@ function ProjectTeamSelectConfirmModal(props) {
           .catch((err) => {
             console.log(err)
           })
-
-        console.log('팀원선택 put')
-        console.log(props.postingSeq)
-        console.log(props.subject)
 
         const letterContent = `<div>팀원으로 선정되셨습니다!! 마이페이지를 확인해주세요 (ง˙∇˙)ว</div>
 <br>
@@ -82,10 +77,6 @@ function ProjectTeamSelectConfirmModal(props) {
           .catch((err) => {
             console.log(err)
           })
-
-        const copy = [...props.applySeqList]
-        copy.push(applySeq)
-        props.setapplySeqList(copy)
       } catch (error) {
         console.log(error)
       }
@@ -99,10 +90,11 @@ function ProjectTeamSelectConfirmModal(props) {
         confirmButtonText: '돌아가기',
       })
     }
+    location.reload()
   }
 
   return (
-    <CssVarsProvider>
+    <>
       <TeamSelectBtn state={props.apply.applyCode.name} valid={props.valid} onClick={handleOpen}>
         팀원 선택
       </TeamSelectBtn>
@@ -123,7 +115,7 @@ function ProjectTeamSelectConfirmModal(props) {
           </DialogActions>
         </div>
       </Dialog>
-    </CssVarsProvider>
+    </>
   )
 }
 export default ProjectTeamSelectConfirmModal

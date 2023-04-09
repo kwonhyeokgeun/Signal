@@ -4,7 +4,6 @@ import Chip from '@mui/material/Chip'
 import InputTopModal from 'components/user/InputTopModal'
 import InputBottomModal from 'components/user/InputBottomModal'
 import { Avatar } from '@mui/material'
-// import skillimg from 'assets/image/Skilltest/React.png'
 import { commonCodeListFetch } from 'utils/commonCodeFetch'
 import { changeSelectForm } from 'utils/changeForm'
 import { getPositionName } from 'data/Positiondata'
@@ -25,8 +24,6 @@ function Profile(profile) {
     setOpenInputCareerModal(false)
   }
 
-  // const [data, setData] = useState([])
-
   const handleToInputPositionModal = async () => {
     setInputTopTitle('포지션')
     setOpenInputPositionModal(true)
@@ -38,7 +35,6 @@ function Profile(profile) {
     const arr = []
     changeSelectForm(await commonCodeListFetch('AI')).map((item) => arr.push(item))
     changeSelectForm(await commonCodeListFetch('DB')).map((item) => arr.push(item))
-    changeSelectForm(await commonCodeListFetch('FI')).map((item) => arr.push(item))
     changeSelectForm(await commonCodeListFetch('WE')).map((item) => arr.push(item))
     changeSelectForm(await commonCodeListFetch('PL')).map((item) => arr.push(item))
     setOptions(arr)
@@ -98,7 +94,7 @@ function Profile(profile) {
               data.userSkillList.map((item, index) => (
                 <Avatar
                   className="my-profile-top-skill-list-item"
-                  src={process.env.REACT_APP_API_URL + item.ImgUrl}
+                  src={process.env.REACT_APP_API_URL + item.code.url}
                   key={index}
                 ></Avatar>
               ))}

@@ -3,12 +3,10 @@ import '../../assets/styles/applyDetail.css'
 import '../../assets/styles/skill.css'
 import { getPositionName } from 'data/Positiondata'
 import ApplyDelete from '../../components/Apply/ApplyDelete'
-import skillImage from '../../assets/image/Skilltest/React.png'
 import { Button } from '@mui/material'
 import { Experimental_CssVarsProvider as CssVarsProvider, styled } from '@mui/material/styles'
 import ModeEditIcon from '@mui/icons-material/ModeEdit'
 import SignalBtn from 'components/common/SignalBtn'
-// import { Link, useLocation } from 'react-router-dom'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import api from 'api/Api.js'
 
@@ -22,22 +20,15 @@ const ApplyModify = styled(Button)(({ theme }) => ({
 }))
 
 function ApplyDetail() {
-  // 1. 아래 default userSeq, applySeq 지우기
-  // 2. import { Link, useLocation } from 'react-router-dom'
-
   const location = useLocation()
-  const userSeq = location.state.userSeq
-  const applySeq = location.state.applySeq
+  const applySeq = parseInt(location.state.applySeq)
+  const stateCode = location.state.stateCode
 
   const navigate = useNavigate()
 
-  // const userSeq = 1
-  // const applySeq = 82
-
-  const currentUserSeq = sessionStorage.getItem('userSeq')
   const showButton = (
     <div>
-      <Link to={'/applymodify'} state={{ applySeq }}>
+      <Link to={'/applymodify'} state={{ applySeq: location.state.applySeq }}>
         <ApplyModify variant="contained" startIcon={<ModeEditIcon />}>
           지원 수정
         </ApplyModify>
@@ -46,8 +37,7 @@ function ApplyDetail() {
     </div>
   )
 
-  // const postingSeq = 458
-  const [posting, setPosting] = useState('458')
+  const [posting, setPosting] = useState(0)
 
   const [apply, setApply] = useState([])
   const [user, setUser] = useState([])
@@ -58,13 +48,12 @@ function ApplyDetail() {
       const res = await api.get(process.env.REACT_APP_API_URL + '/apply/' + applySeq)
       setApply(res.data.body)
       setPosition(getPositionName(res.data.body.position.code))
-      // postingFetch(res.data.body.postingSeq)
 
       await api.get(process.env.REACT_APP_API_URL + '/posting/' + res.data.body.postingSeq).then((res) => {
         setPosting(res.data.body)
       })
 
-      await api.get(process.env.REACT_APP_API_URL + '/user/' + userSeq).then((res) => {
+      await api.get(process.env.REACT_APP_API_URL + '/user/' + res.data.body.userSeq).then((res) => {
         setUser(res.data.body)
       })
     } catch (error) {
@@ -83,9 +72,11 @@ function ApplyDetail() {
           <div className="apply-detail-project-name-section">
             <div>
               <div className="apply-detail-project-name-label">프로젝트 이름</div>
-              <div className="apply-detail-project-title">싸피 프로젝트 모집</div>
+              <div className="apply-detail-project-title">{posting.subject}</div>
             </div>
-            <div className="apply-detail-cancle-section">{userSeq === currentUserSeq ? showButton : ''}</div>
+            <div className="apply-detail-cancle-section">
+              {apply.isMyApply && stateCode === '심사중' ? showButton : ''}
+            </div>
           </div>
           <hr className="apply-detail-hr" />
           <div className="apply-detail-application-section">
@@ -131,8 +122,11 @@ function ApplyDetail() {
                             justifyContent: 'space-between',
                           }}
                         >
-                          <img src={skillImage} alt="skillImage" className="apply-detail-skill-image" />
-                          <span>{skill.name}</span>
+                          <img
+                            src={process.env.REACT_APP_API_URL + skill.url}
+                            alt="skillImage"
+                            className="apply-detail-skill-image"
+                          />
                         </div>
                       </div>
                     </div>
@@ -147,7 +141,7 @@ function ApplyDetail() {
                     <hr className="apply-detail-hr-small" />
                   </div>
                   <div style={{ display: 'flex' }}>
-                    <div style={{ width: '90%' }}>
+                    <div style={{ width: '90%', overflowWrap: 'break-word' }}>
                       {apply.careerList &&
                         apply.careerList.map((item) => (
                           <div className="apply-detail-career" key={item.applyCareerSeq}>
@@ -165,7 +159,7 @@ function ApplyDetail() {
                     <hr className="apply-detail-hr-small" />
                   </div>
                   <div style={{ display: 'flex' }}>
-                    <div style={{ width: '90%' }}>
+                    <div style={{ width: '90%', overflowWrap: 'break-word' }}>
                       {apply.expList &&
                         apply.expList.map((item) => (
                           <div className="apply-detail-exp" key={item.applyExpSeq}>

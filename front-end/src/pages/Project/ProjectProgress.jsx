@@ -1,41 +1,51 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import 'assets/styles/projectProgress.css'
 import SignalBtn from 'components/common/SignalBtn'
 import TodoList from 'components/Project/TodoList'
 import ProjectDocs from 'components/Project/ProjectDocs'
-import AlertModal from 'components/AlertModal'
+import AlertModal from 'components/common/AlertModal'
 import TeamEval from 'components/Project/TeamEval'
-// import api from 'api/Api.js'
+import api from 'api/Api.js'
 
-// import TeamProfile from 'components/Project/TeamProfile'
+function ProjectProgress({ projectSeq, setProjectMode }) {
+  const userSeq = sessionStorage.getItem('userSeq')
+  const [project, setProject] = useState([])
 
-function ProjectProgress() {
-  // const list = [1, 2, 3, 4, 5, 6]
-  // const projectSeq = 458
+  const getProject = async () => {
+    await api({
+      url: process.env.REACT_APP_API_URL + '/project',
+      method: 'GET',
+      params: {
+        userSeq,
+        projectSeq,
+      },
+    })
+      .then((res) => {
+        setProject(res.data.body)
+      })
+      .catch((e) => {
+        console.log(e)
+      })
+  }
 
-  // const [memberList, setMemberList] = useState([])
-  // const [projectData, setProjectData] = useState([])
-
-  // const projecDataLoad = async () => {
-  // try {
-  //   const loadData = await api({
-  //     url: process.env.REACT_APP_API_URL + `/project/member/${projectSeq}`,
-  //     method: 'GET',
-  //   })
-  //   setMemberList(loadData.data.body.projectUserList)
-
-  //   const res = await api.get('https://www.ssafysignal.site:8443/project/setting/448')
-  //   console.log(res)
-  //   setProjectData(res.data.body)
-  // } catch (error) {
-  //   console.log(error)
-  // }
+  useEffect(() => {
+    getProject()
+  }, [])
 
   const [mode, setMode] = useState(0)
 
+  const [meetingOpen, setMeetingOpen] = useState(false)
+
+  const handleMeetingEnter = () => {
+    setMeetingOpen(false)
+    window.open(`/projectmeeting?nickname=${sessionStorage.getItem('nickname')}&projectSeq=${projectSeq}`, '_blank')
+  }
+
   return (
     <div className="team-progress-header">
-      <div className="team-progress-title">프로젝트 제목</div>
+      <div className="team-progress-title" onClick={() => setProjectMode('main')}>
+        {project.subject}
+      </div>
       <div className="team-progress-menu">
         <SignalBtn
           className={`team-progress-menu-item ${mode === 0 ? 'active' : ''}`}
@@ -60,6 +70,7 @@ function ProjectProgress() {
           sx={projectSubMenuStyle}
           onClick={() => {
             setMode(2)
+            setMeetingOpen(true)
           }}
         >
           화상회의 열기
@@ -75,7 +86,22 @@ function ProjectProgress() {
           동료 평가
         </SignalBtn>
       </div>
-      {mode === 0 ? <TodoList /> : mode === 1 ? <ProjectDocs /> : mode === 2 ? <AlertModal /> : <TeamEval />}
+      {mode === 0 ? (
+        <TodoList projectSeq={projectSeq} />
+      ) : mode === 1 ? (
+        <ProjectDocs projectSeq={projectSeq} />
+      ) : mode === 2 ? (
+        <AlertModal
+          open={meetingOpen}
+          onClick={handleMeetingEnter}
+          msg={'화상회의에 입장하시겠습니까?'}
+          onClose={() => setMeetingOpen(false)}
+        />
+      ) : mode === 3 ? (
+        <TeamEval projectSeq={projectSeq} setMode={setMode} />
+      ) : (
+        <></>
+      )}
       <div></div>
     </div>
   )

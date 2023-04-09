@@ -8,11 +8,11 @@ const Container = styled.div`
   height: 100vh;
   background-size: cover;
   background-repeat: no-repeat;
-  overflow: hidden;
   display: flex;
   justify-content: space-around;
   align-items: center;
   background-image: url('${({ isBg }) => (isBg ? gradient : null)}');
+  }
 `
 
 function Section({ children, isBg }) {

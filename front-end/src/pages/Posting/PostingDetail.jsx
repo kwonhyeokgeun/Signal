@@ -12,7 +12,6 @@ import api from 'api/Api'
 import Localdata from 'data/Localdata'
 import { Box } from '@mui/system'
 import SignalBtn from 'components/common/SignalBtn'
-// import { useLocation } from 'react-router'
 
 const ApplyModify = styled(Button)(({ theme }) => ({
   backgroundColor: '#574B9F',
@@ -26,10 +25,6 @@ const ApplyModify = styled(Button)(({ theme }) => ({
 function PostingDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  // console.log(id)
-  // const location = useLocation()
-  // const userSeq = location.state.userSeq
-  // const applySeq = location.state.applySeq
 
   const postingSeq = id
 
@@ -39,8 +34,6 @@ function PostingDetail() {
     try {
       const res = await api.get(process.env.REACT_APP_API_URL + '/posting/' + postingSeq)
       setPosting(res.data.body)
-      console.log(res.data.body)
-      // console.log('applyFetch', res.data.body)
     } catch (error) {
       console.log(error)
     }
@@ -63,14 +56,14 @@ function PostingDetail() {
                 <div className="apply-detail-project-title">{posting ? posting.subject : null}</div>
               </div>
               <div className="apply-detail-cancle-section">
-                {posting && (
+                {posting && posting.isMyPosting && (
                   <Link to={'/postingModify'} state={{ postingSeq: posting.postingSeq }}>
                     <ApplyModify variant="contained" startIcon={<ModeEditIcon />}>
                       공고 수정
                     </ApplyModify>
                   </Link>
                 )}
-                <PostingDelete open={open} postingSeq={postingSeq}></PostingDelete>
+                {posting && posting.isMyPosting && <PostingDelete open={open} postingSeq={postingSeq}></PostingDelete>}
               </div>
             </div>
             <hr className="apply-detail-hr" />
@@ -133,25 +126,45 @@ function PostingDetail() {
                 </div>
                 {posting &&
                   posting.postingSkillList.map((ele, i) => (
-                    <p style={{ marginRight: '5px' }} key={i}>
-                      {ele.skillCode}
-                    </p>
+                    <img
+                      src={process.env.REACT_APP_API_URL + ele.code.url}
+                      style={{
+                        marginRight: '5px',
+                        width: '37px',
+                        height: '37px',
+                      }}
+                      key={i}
+                    ></img>
                   ))}
               </Box>
 
               <div className="apply-detail-content-section">
                 <div className="apply-detail-label">프로젝트 소개</div>
-                <div className="apply-detail-content">{posting && posting.content}</div>
+                <div className="apply-detail-content">
+                  {posting &&
+                    posting.content.split('\n').map((line, index) => {
+                      return (
+                        <span key={index}>
+                          {line}
+                          <br />
+                        </span>
+                      )
+                    })}
+                </div>
               </div>
               <div className="apply-register-submit-button">
-                <SignalBtn
-                  style={{ width: '50%' }}
-                  onClick={() => {
-                    navigate('/applyregister', { state: { postingSeq: posting.postingSeq } })
-                  }}
-                >
-                  지원하기
-                </SignalBtn>
+                {posting && !posting.isMyPosting ? (
+                  <SignalBtn
+                    style={{ width: '50%' }}
+                    onClick={() => {
+                      navigate('/applyregister', { state: { postingSeq: posting.postingSeq } })
+                    }}
+                  >
+                    지원하기
+                  </SignalBtn>
+                ) : (
+                  <></>
+                )}
                 {/* 팀원 선택 페이지 ( 작성자용 ) */}
               </div>
             </div>

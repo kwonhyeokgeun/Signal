@@ -4,7 +4,7 @@ import Modal from '@mui/material/Modal'
 import { TextField } from '@mui/material'
 import { PatternFormat } from 'react-number-format'
 import SignalBtn from 'components/common/SignalBtn'
-import AlertModal from 'components/AlertModal'
+import AlertModal from 'components/common/AlertModal'
 import closeBtn from 'assets/image/x.png'
 import 'assets/styles/profile/usermodify.css'
 import api from 'api/Api'
@@ -12,7 +12,7 @@ import api from 'api/Api'
 function UserModifyModal({ open, onClose }) {
   const [inputs, setInputs] = useState([])
   const [data, setData] = useState([])
-  const [alertOpen, setAlertOpen] = useState('')
+  const [alertOpen, setAlertOpen] = useState(false)
   const [fileImage, setFileImage] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const fileInput = React.useRef(null)
@@ -22,26 +22,23 @@ function UserModifyModal({ open, onClose }) {
   }
 
   const handleToProfile = async () => {
-    console.log(inputs.nickname)
-    console.log(inputs.phone)
-
     const formData = new FormData()
     formData.append('profileImageFile ', fileImage)
     formData.append('nickname ', inputs.nickname)
     formData.append('phone ', inputs.phone)
-
-    api
+    await api
       .post(process.env.REACT_APP_API_URL + '/user/' + data.userSeq, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
       .then((res) => {
-        console.log(res)
+        sessionStorage.setItem('nickname', inputs.nickname)
       })
 
     setAlertOpen(false)
     onClose(onClose(true))
+    window.location.reload()
   }
 
   const handleToClose = () => {
@@ -67,7 +64,6 @@ function UserModifyModal({ open, onClose }) {
         setData(res.data.body)
         setInputs(res.data.body)
         setImageUrl(process.env.REACT_APP_API_URL + res.data.body.userImageUrl)
-        console.log(res.data.body)
       })
     } catch (e) {
       console.log(e)
@@ -100,7 +96,7 @@ function UserModifyModal({ open, onClose }) {
           <div className="user-modify-main">
             <div className="user-modify-title">회원정보 수정</div>
             <div className="user-modify-img-container">
-              <img className="my-user-img" src={imageUrl} alt="" />
+              <img className="user-modify-img" src={imageUrl} alt="" />
               <div className="user-modify-img-hover" onClick={handleButtonClick}>
                 이미지 선택
               </div>
